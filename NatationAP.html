@@ -160,7 +160,6 @@ tbody tr:hover{background:#eef2ff;}
 .chip.active.g2{background:#7c3aed; border-color:#7c3aed;}
 .chip.active.oui{background:#16a34a; border-color:#16a34a;}
 .chip.active.non{background:#dc2626; border-color:#dc2626;}
-.undef-hint{font-size:.72rem; color:#94a3b8; font-style:italic;}
 
 .simple-table{width:100%; border-collapse:collapse; font-size:.88rem;}
 .simple-table th,.simple-table td{padding:10px 12px; border-bottom:1px solid var(--border); text-align:left;}
@@ -563,8 +562,7 @@ function chipGroup(id, field, value){
   } else {
     buttons = chipButton(id,'autorisation','Oui',value,'✅ Oui','oui') + chipButton(id,'autorisation','Non',value,'❌ Non','non');
   }
-  var hint = value ? '' : '<span class="undef-hint">à définir</span>';
-  return '<div class="chips">'+buttons+hint+'</div>';
+  return '<div class="chips">'+buttons+'</div>';
 }
 
 function renderTable(tabKey, columns, rows){
