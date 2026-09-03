@@ -129,29 +129,47 @@ main{max-width:1400px; margin:0 auto; padding:0 clamp(14px,4vw,40px);}
 .toolbar-actions{display:flex; gap:8px; flex-wrap:wrap;}
 
 .table-scroll{overflow-x:auto; border-radius:var(--radius); box-shadow:var(--shadow); background:var(--surface);}
-table{border-collapse:collapse; width:100%; min-width:640px; font-size:.8rem;}
+table{border-collapse:collapse; width:100%; min-width:520px; table-layout:fixed; font-size:.8rem;}
 thead th{
-  background:var(--col-color,#334155); color:#fff; text-align:left; padding:6px 10px; font-weight:700;
+  background:var(--col-color,#334155); color:#fff; text-align:left; padding:6px 8px; font-weight:700;
   white-space:nowrap; position:sticky; top:0; z-index:2; user-select:none; font-size:.78rem;
+  overflow:hidden; text-overflow:ellipsis;
 }
 thead th.sortable{cursor:pointer;}
 thead th.sortable:hover{filter:brightness(1.12);}
 .arrow{font-size:.65rem;}
-tr.filter-row td{background:#f8fafc; padding:3px 8px; position:sticky; top:29px; z-index:1;}
+tr.filter-row td{background:#f8fafc; padding:3px 6px; position:sticky; top:29px; z-index:1;}
 .filter-input{
-  width:100%; border:1px solid var(--border); border-radius:6px; padding:4px 6px; font-size:.74rem; background:#fff;
+  width:100%; border:1px solid var(--border); border-radius:6px; padding:4px 4px; font-size:.72rem; background:#fff;
 }
-tbody td{padding:3px 10px; border-bottom:1px solid var(--border); vertical-align:middle; line-height:1.25;}
+tbody td{padding:3px 8px; border-bottom:1px solid var(--border); vertical-align:middle; line-height:1.25;}
 tbody tr:nth-child(even){background:#fafbff;}
 tbody tr:hover{background:#eef2ff;}
 .empty-row{text-align:center; color:var(--muted); padding:26px !important; font-style:italic;}
 .dim{color:#cbd5e1;}
 
-.chips{display:flex; align-items:center; gap:5px; flex-wrap:wrap;}
+th.col-num{width:26px;}
+th.col-sexe{width:34px;}
+th.col-classe{width:66px;}
+th.col-groupe{width:128px;}
+th.col-autorisation{width:138px;}
+td.col-num{text-align:center; color:var(--muted);}
+td.col-sexe{text-align:center;}
+td.col-groupe, td.col-autorisation{padding-left:6px; padding-right:6px;}
+td.col-nom, td.col-prenom{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:0;}
+
+.sexe-badge{
+  display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px;
+  border-radius:50%; font-size:.7rem; font-weight:800; color:#fff; line-height:1;
+}
+.sexe-f{background:#db2777;}
+.sexe-g{background:#2563eb;}
+
+.chips{display:flex; align-items:center; gap:4px; flex-wrap:nowrap;}
 .chip{
-  cursor:pointer; border:2px solid var(--border); border-radius:999px; padding:3px 10px; font-size:.74rem;
+  cursor:pointer; border:2px solid var(--border); border-radius:999px; padding:3px 7px; font-size:.7rem;
   font-weight:700; color:var(--muted); background:#fff; transition:.15s; user-select:none;
-  font-family:inherit; outline:none; line-height:1.4;
+  font-family:inherit; outline:none; line-height:1.4; white-space:nowrap;
 }
 .chip:hover{border-color:#94a3b8; transform:translateY(-1px);}
 .chip:active{transform:translateY(0);}
@@ -272,7 +290,7 @@ var GENERAL_COLUMNS = [
   {key:'nom', label:'Nom', color:'nom', sortable:true, filterable:true, filterType:'text'},
   {key:'prenom', label:'Prénom', color:'prenom', sortable:true, filterable:true, filterType:'text'},
   {key:'classe', label:'Classe', color:'classe', sortable:true, filterable:true, filterType:'select', options:CLASSES},
-  {key:'sexe', label:'Sexe', color:'sexe', sortable:true, filterable:true, filterType:'select', options:['F','M']},
+  {key:'sexe', label:'Sexe', color:'sexe', sortable:true, filterable:true, filterType:'select', options:[{value:'F',label:'F'},{value:'M',label:'G'}]},
   {key:'groupe', label:'Groupe', color:'groupe', sortable:true, filterable:true, filterType:'select', options:['1','2']},
   {key:'autorisation', label:'Autorisation de sortie', color:'autorisation', sortable:true, filterable:true, filterType:'select', options:['Oui','Non']}
 ];
@@ -281,7 +299,7 @@ var CLASS_COLUMNS = [
   {key:'num', label:'N°', color:'num', sortable:false, filterable:false},
   {key:'nom', label:'Nom', color:'nom', sortable:true, filterable:true, filterType:'text'},
   {key:'prenom', label:'Prénom', color:'prenom', sortable:true, filterable:true, filterType:'text'},
-  {key:'sexe', label:'Sexe', color:'sexe', sortable:true, filterable:true, filterType:'select', options:['F','M']},
+  {key:'sexe', label:'Sexe', color:'sexe', sortable:true, filterable:true, filterType:'select', options:[{value:'F',label:'F'},{value:'M',label:'G'}]},
   {key:'groupe', label:'Groupe', color:'groupe', sortable:true, filterable:true, filterType:'select', options:['1','2'], editable:true},
   {key:'autorisation', label:'Autorisation de sortie', color:'autorisation', sortable:true, filterable:true, filterType:'select', options:['Oui','Non'], editable:true}
 ];
@@ -555,6 +573,12 @@ function chipButton(id, field, val, current, label, cls){
   var active = current===val;
   return '<button type="button" class="chip chip-btn'+(active?(' active '+cls):'')+'" data-id="'+id+'" data-field="'+field+'" data-value="'+val+'">'+label+'</button>';
 }
+function sexeBadge(value){
+  if(!value) return '<span class="dim">—</span>';
+  var v = value.toString().trim().toUpperCase();
+  if(v==='F') return '<span class="sexe-badge sexe-f">F</span>';
+  return '<span class="sexe-badge sexe-g">G</span>';
+}
 function chipGroup(id, field, value){
   var buttons;
   if(field==='groupe'){
@@ -583,18 +607,22 @@ function renderTable(tabKey, columns, rows){
     var s = sortState[tabKey];
     var arrow = '';
     if(sortable && s && s.key===col.key) arrow = s.dir==='asc' ? ' <span class="arrow">▲</span>' : ' <span class="arrow">▼</span>';
-    html += '<th class="'+(sortable?'sortable':'')+'" data-tab="'+tabKey+'" data-key="'+col.key+'" style="--col-color:var(--col-'+col.color+')">'+col.label+arrow+'</th>';
+    html += '<th class="col-'+col.key+' '+(sortable?'sortable':'')+'" data-tab="'+tabKey+'" data-key="'+col.key+'" style="--col-color:var(--col-'+col.color+')">'+col.label+arrow+'</th>';
   });
   html += '</tr><tr class="filter-row">';
   columns.forEach(function(col){
-    if(!col.filterable){ html += '<td></td>'; return; }
+    if(!col.filterable){ html += '<td class="col-'+col.key+'"></td>'; return; }
     var cur = (filterState[tabKey]||{})[col.key] || '';
     if(col.filterType==='select'){
       var opts = '<option value="">Tous</option>';
-      (col.options||[]).forEach(function(o){ opts += '<option value="'+o+'"'+(cur===o?' selected':'')+'>'+o+'</option>'; });
-      html += '<td><select class="filter-input" data-tab="'+tabKey+'" data-key="'+col.key+'">'+opts+'</select></td>';
+      (col.options||[]).forEach(function(o){
+        var val = (o && typeof o==='object') ? o.value : o;
+        var lbl = (o && typeof o==='object') ? o.label : o;
+        opts += '<option value="'+val+'"'+(cur===val?' selected':'')+'>'+lbl+'</option>';
+      });
+      html += '<td class="col-'+col.key+'"><select class="filter-input" data-tab="'+tabKey+'" data-key="'+col.key+'">'+opts+'</select></td>';
     } else {
-      html += '<td><input type="text" class="filter-input" data-tab="'+tabKey+'" data-key="'+col.key+'" placeholder="Filtrer…" value="'+escapeHtml(cur)+'"></td>';
+      html += '<td class="col-'+col.key+'"><input type="text" class="filter-input" data-tab="'+tabKey+'" data-key="'+col.key+'" placeholder="Filtrer…" value="'+escapeHtml(cur)+'"></td>';
     }
   });
   html += '</tr></thead><tbody>';
@@ -607,9 +635,10 @@ function renderTable(tabKey, columns, rows){
     columns.forEach(function(col){ if(col.key!=='num') attrs += ' data-'+col.key+'="'+escapeHtml(r[col.key]||'')+'"'; });
     html += '<tr'+attrs+'>';
     columns.forEach(function(col){
-      if(col.key==='num'){ html += '<td>'+(idx+1)+'</td>'; }
-      else if(col.editable){ html += '<td>'+chipGroup(r.id, col.key, r[col.key])+'</td>'; }
-      else { html += '<td>'+(r[col.key] ? escapeHtml(r[col.key]) : '<span class="dim">—</span>')+'</td>'; }
+      if(col.key==='num'){ html += '<td class="col-num">'+(idx+1)+'</td>'; }
+      else if(col.editable){ html += '<td class="col-'+col.key+'">'+chipGroup(r.id, col.key, r[col.key])+'</td>'; }
+      else if(col.key==='sexe'){ html += '<td class="col-sexe">'+sexeBadge(r.sexe)+'</td>'; }
+      else { html += '<td class="col-'+col.key+'">'+(r[col.key] ? escapeHtml(r[col.key]) : '<span class="dim">—</span>')+'</td>'; }
     });
     html += '</tr>';
   });
