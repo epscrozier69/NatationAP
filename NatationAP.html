@@ -40,7 +40,7 @@ body{
 .app-header{
   background:linear-gradient(135deg,#2563eb,#7c3aed 60%,#db2777);
   color:#fff;
-  padding:22px clamp(14px,4vw,40px);
+  padding:10px clamp(14px,4vw,40px);
   box-shadow:var(--shadow-lg);
   position:sticky; top:0; z-index:40;
 }
@@ -48,29 +48,29 @@ body{
   display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
   max-width:1400px; margin:0 auto;
 }
-.app-title h1{margin:0; font-size:clamp(1.05rem,2.4vw,1.6rem); font-weight:700; line-height:1.25;}
-.app-title p{margin:2px 0 0; font-size:.85rem; opacity:.9; font-weight:500;}
-.header-actions{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.app-title h1{margin:0; font-size:clamp(.95rem,2.2vw,1.3rem); font-weight:700; line-height:1.2;}
+.app-title p{margin:0; font-size:.72rem; opacity:.9; font-weight:500;}
+.header-actions{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
 .sync-pill{
-  border:none; cursor:pointer; font-size:.78rem; font-weight:600; padding:8px 14px; border-radius:999px;
+  border:none; cursor:pointer; font-size:.72rem; font-weight:600; padding:6px 12px; border-radius:999px;
   background:rgba(255,255,255,.18); color:#fff; display:inline-flex; align-items:center; gap:6px;
   transition:.15s;
 }
 .sync-pill:hover{background:rgba(255,255,255,.3);}
 .icon-btn{
-  border:none; cursor:pointer; background:rgba(255,255,255,.18); color:#fff; width:40px; height:40px;
-  border-radius:50%; font-size:1.1rem; display:flex; align-items:center; justify-content:center; transition:.15s;
+  border:none; cursor:pointer; background:rgba(255,255,255,.18); color:#fff; width:32px; height:32px;
+  border-radius:50%; font-size:1rem; display:flex; align-items:center; justify-content:center; transition:.15s;
 }
 .icon-btn:hover{background:rgba(255,255,255,.32); transform:rotate(20deg);}
 
 .tabs{
-  display:flex; gap:8px; overflow-x:auto; padding:12px clamp(14px,4vw,40px);
+  display:flex; gap:6px; overflow-x:auto; padding:6px clamp(14px,4vw,40px);
   max-width:1400px; margin:0 auto; scrollbar-width:thin;
 }
 .tab-btn{
   border:2px solid var(--border); background:var(--surface); color:var(--muted); cursor:pointer;
-  padding:10px 18px; border-radius:999px; font-weight:600; font-size:.88rem; white-space:nowrap;
-  display:inline-flex; align-items:center; gap:8px; transition:.15s; flex:0 0 auto;
+  padding:6px 14px; border-radius:999px; font-weight:600; font-size:.8rem; white-space:nowrap;
+  display:inline-flex; align-items:center; gap:6px; transition:.15s; flex:0 0 auto;
 }
 .tab-btn:hover{border-color:var(--primary); color:var(--primary);}
 .tab-btn.active{background:var(--primary); border-color:var(--primary); color:#fff; box-shadow:var(--shadow);}
@@ -79,20 +79,31 @@ body{
 }
 .tab-btn.active .tab-badge{background:rgba(255,255,255,.25);}
 
+/* Couleurs d'identité par classe (cf. Fonctionnalités.md) */
+.tab-btn[data-tab-target="6ème1"]{border-bottom:4px solid #2563eb;}
+.tab-btn[data-tab-target="6ème2"]{border-bottom:4px solid #cbd5e1;}
+.tab-btn[data-tab-target="6ème3"]{border-bottom:4px solid #dc2626;}
+.tab-btn[data-tab-target="6ème4"]{border-bottom:4px solid #0f172a;}
+.tab-btn[data-tab-target="6ème1"].active{background:#2563eb; border-color:#2563eb; color:#fff;}
+.tab-btn[data-tab-target="6ème2"].active{background:#ffffff; border:3px solid #0f172a; color:#0f172a; box-shadow:0 0 0 2px rgba(15,23,42,.15);}
+.tab-btn[data-tab-target="6ème3"].active{background:#dc2626; border-color:#dc2626; color:#fff;}
+.tab-btn[data-tab-target="6ème4"].active{background:#0f172a; border-color:#0f172a; color:#fff;}
+.tab-btn[data-tab-target="6ème2"].active .tab-badge{background:rgba(15,23,42,.12); color:#0f172a;}
+
 main{max-width:1400px; margin:0 auto; padding:0 clamp(14px,4vw,40px);}
 .tab-panel{display:none; animation:fadein .18s ease;}
 .tab-panel.active{display:block;}
 @keyframes fadein{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;}}
 
 .section-toolbar{
-  display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:18px 0 14px;
+  display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:10px 0 8px;
 }
-.section-toolbar h2{margin:0; font-size:1.2rem;}
+.section-toolbar h2{margin:0; font-size:1.05rem;}
 .section-actions{display:flex; gap:10px; flex-wrap:wrap; margin-left:auto;}
 
 .btn{
-  border:none; cursor:pointer; border-radius:var(--radius-sm); padding:11px 18px; font-weight:600; font-size:.86rem;
-  display:inline-flex; align-items:center; gap:8px; transition:.15s; min-height:42px;
+  border:none; cursor:pointer; border-radius:var(--radius-sm); padding:9px 16px; font-weight:600; font-size:.82rem;
+  display:inline-flex; align-items:center; gap:8px; transition:.15s; min-height:38px;
 }
 .btn-primary{background:var(--primary); color:#fff; box-shadow:0 3px 10px rgba(37,99,235,.35);}
 .btn-primary:hover{background:var(--primary-dark);}
@@ -100,47 +111,47 @@ main{max-width:1400px; margin:0 auto; padding:0 clamp(14px,4vw,40px);}
 .btn-secondary:hover{background:#e0e7ff;}
 .btn-ghost{background:transparent; color:var(--muted); border:1px solid var(--border);}
 .btn-ghost:hover{border-color:var(--primary); color:var(--primary);}
-.btn-sm{padding:7px 12px; font-size:.78rem; min-height:32px;}
+.btn-sm{padding:5px 10px; font-size:.74rem; min-height:28px;}
 .btn-danger{background:#fee2e2; color:#b91c1c;}
 
-.card{background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px; margin-bottom:20px;}
+.card{background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow); padding:10px 14px; margin-bottom:10px;}
 
-.stats-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:18px;}
+.stats-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; margin-bottom:10px;}
 .stat-card{
-  background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px 18px;
-  border-left:6px solid var(--col-color,#64748b);
+  background:var(--surface); border-radius:10px; box-shadow:var(--shadow); padding:8px 12px;
+  border-left:5px solid var(--col-color,#64748b);
 }
-.stat-value{font-size:1.7rem; font-weight:800; color:var(--text);}
-.stat-label{font-size:.8rem; color:var(--muted); font-weight:600; margin-top:2px;}
+.stat-value{font-size:1.25rem; font-weight:800; color:var(--text); line-height:1.1;}
+.stat-label{font-size:.68rem; color:var(--muted); font-weight:600; margin-top:1px;}
 
-.table-toolbar{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px;}
-.row-count{font-size:.82rem; color:var(--muted); font-weight:600;}
+.table-toolbar{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:6px;}
+.row-count{font-size:.78rem; color:var(--muted); font-weight:600;}
 .toolbar-actions{display:flex; gap:8px; flex-wrap:wrap;}
 
 .table-scroll{overflow-x:auto; border-radius:var(--radius); box-shadow:var(--shadow); background:var(--surface);}
-table{border-collapse:collapse; width:100%; min-width:640px; font-size:.87rem;}
+table{border-collapse:collapse; width:100%; min-width:640px; font-size:.8rem;}
 thead th{
-  background:var(--col-color,#334155); color:#fff; text-align:left; padding:12px 14px; font-weight:700;
-  white-space:nowrap; position:sticky; top:0; z-index:2; user-select:none;
+  background:var(--col-color,#334155); color:#fff; text-align:left; padding:6px 10px; font-weight:700;
+  white-space:nowrap; position:sticky; top:0; z-index:2; user-select:none; font-size:.78rem;
 }
 thead th.sortable{cursor:pointer;}
 thead th.sortable:hover{filter:brightness(1.12);}
-.arrow{font-size:.7rem;}
-tr.filter-row td{background:#f8fafc; padding:6px 10px; position:sticky; top:41px; z-index:1;}
+.arrow{font-size:.65rem;}
+tr.filter-row td{background:#f8fafc; padding:3px 8px; position:sticky; top:29px; z-index:1;}
 .filter-input{
-  width:100%; border:1px solid var(--border); border-radius:7px; padding:6px 8px; font-size:.8rem; background:#fff;
+  width:100%; border:1px solid var(--border); border-radius:6px; padding:4px 6px; font-size:.74rem; background:#fff;
 }
-tbody td{padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:middle;}
+tbody td{padding:3px 10px; border-bottom:1px solid var(--border); vertical-align:middle; line-height:1.25;}
 tbody tr:nth-child(even){background:#fafbff;}
 tbody tr:hover{background:#eef2ff;}
 .empty-row{text-align:center; color:var(--muted); padding:26px !important; font-style:italic;}
 .dim{color:#cbd5e1;}
 
-.chips{display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
+.chips{display:flex; align-items:center; gap:5px; flex-wrap:wrap;}
 .chip{
-  cursor:pointer; border:2px solid var(--border); border-radius:999px; padding:6px 13px; font-size:.8rem;
+  cursor:pointer; border:2px solid var(--border); border-radius:999px; padding:3px 10px; font-size:.74rem;
   font-weight:700; color:var(--muted); background:#fff; transition:.15s; user-select:none;
-  font-family:inherit; outline:none; line-height:1.3;
+  font-family:inherit; outline:none; line-height:1.4;
 }
 .chip:hover{border-color:#94a3b8; transform:translateY(-1px);}
 .chip:active{transform:translateY(0);}
@@ -156,26 +167,6 @@ tbody tr:hover{background:#eef2ff;}
 .simple-table th{background:#0f172a; color:#fff;}
 .class-stats-table-wrap{overflow-x:auto; border-radius:var(--radius); box-shadow:var(--shadow); background:var(--surface);}
 
-.modal-overlay{
-  position:fixed; inset:0; background:rgba(15,23,42,.55); display:flex; align-items:center; justify-content:center;
-  padding:16px; z-index:100; opacity:0; pointer-events:none; transition:.18s;
-}
-.modal-overlay.open{opacity:1; pointer-events:auto;}
-.modal{
-  background:#fff; border-radius:var(--radius); max-width:520px; width:100%; padding:24px; box-shadow:var(--shadow-lg);
-  max-height:88vh; overflow-y:auto; transform:translateY(10px); transition:.18s;
-}
-.modal-overlay.open .modal{transform:translateY(0);}
-.modal h3{margin-top:0;}
-.modal label{display:block; font-size:.82rem; font-weight:700; color:var(--muted); margin:14px 0 6px;}
-.modal input[type=text],.modal input[type=url]{
-  width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:.9rem;
-}
-.modal .help{background:#eff6ff; border-radius:10px; padding:12px 14px; font-size:.8rem; color:#1e40af; margin-top:14px; line-height:1.5;}
-.modal .modal-actions{display:flex; gap:8px; justify-content:flex-end; margin-top:18px; flex-wrap:wrap;}
-.modal-close{position:absolute; top:14px; right:14px;}
-.modal{position:relative;}
-
 .toast-container{position:fixed; bottom:18px; right:18px; display:flex; flex-direction:column; gap:8px; z-index:200;}
 .toast{
   background:#0f172a; color:#fff; padding:12px 16px; border-radius:10px; font-size:.85rem; box-shadow:var(--shadow-lg);
@@ -188,10 +179,10 @@ tbody tr:hover{background:#eef2ff;}
 footer.app-footer{max-width:1400px; margin:24px auto 0; padding:0 clamp(14px,4vw,40px); color:var(--muted); font-size:.78rem; text-align:center;}
 
 @media (max-width:640px){
-  .app-header{padding:16px;}
-  thead th, tbody td{padding:8px 9px; font-size:.78rem;}
-  .stat-value{font-size:1.4rem;}
-  .modal{padding:18px;}
+  .app-header{padding:8px 14px;}
+  thead th{padding:5px 7px; font-size:.72rem;}
+  tbody td{padding:3px 7px; font-size:.74rem;}
+  .stat-value{font-size:1.1rem;}
 }
 </style>
 </head>
@@ -205,7 +196,6 @@ footer.app-footer{max-width:1400px; margin:24px auto 0; padding:0 clamp(14px,4vw
     </div>
     <div class="header-actions">
       <button type="button" class="sync-pill" id="syncPill" data-action="sync-now" title="Cliquer pour synchroniser maintenant">⚪ Local uniquement</button>
-      <button type="button" class="icon-btn" data-action="open-settings" title="Configuration Google Sheet">⚙️</button>
     </div>
   </div>
 </header>
@@ -230,10 +220,6 @@ footer.app-footer{max-width:1400px; margin:24px auto 0; padding:0 clamp(14px,4vw
         <button type="button" class="btn btn-primary" data-action="import-roster">📥 Importer les élèves du collège</button>
       </div>
     </div>
-    <div class="card" style="padding:10px 14px;font-size:.82rem;color:var(--muted);">
-      Cette liste se met à jour automatiquement dès qu'un import est effectué ou qu'une modification (Groupe / Autorisation de sortie) est enregistrée dans un onglet de classe. Elle n'est pas modifiable directement ici. Seuls les élèves de 6ème (6ème1 à 6ème4) sont importés depuis la liste complète du collège ; les autres niveaux sont ignorés.
-    </div>
-    <div class="table-toolbar" style="display:none;"></div>
     <div class="table-container" data-table-container="general"></div>
   </section>
 
@@ -270,29 +256,6 @@ footer.app-footer{max-width:1400px; margin:24px auto 0; padding:0 clamp(14px,4vw
 
 <footer class="app-footer">EPS : Natation Autorisation de Sortie — 2026-2027 · Données synchronisées via Google Sheets</footer>
 
-<!-- Modale de configuration -->
-<div class="modal-overlay" id="settingsOverlay">
-  <div class="modal">
-    <button type="button" class="icon-btn modal-close" data-action="close-settings" style="background:#f1f5f9;color:#334155;">✕</button>
-    <h3>⚙️ Configuration Google Sheet</h3>
-    <label for="appScriptUrlInput">URL de l'application Apps Script (Web App)</label>
-    <input type="url" id="appScriptUrlInput" placeholder="https://script.google.com/macros/s/XXXXX/exec">
-    <div class="modal-actions">
-      <button type="button" class="btn btn-ghost btn-sm" data-action="test-connection">🔌 Tester la connexion</button>
-      <button type="button" class="btn btn-secondary btn-sm" data-action="save-settings">💾 Enregistrer</button>
-      <button type="button" class="btn btn-primary btn-sm" data-action="sync-now">🔄 Synchroniser maintenant</button>
-    </div>
-    <div class="help">
-      <strong>Mise en place (une seule fois) :</strong><br>
-      1. Ouvrez le Google Sheet partagé « IA - EPS - Natation AP Sortie ».<br>
-      2. Menu <em>Extensions → Apps Script</em>, collez le contenu du fichier <code>NatationAP_AppsScript.gs</code> fourni.<br>
-      3. Déployez en <em>Application Web</em> : Exécuter en tant que « Moi », Accès « Tous ».<br>
-      4. Copiez l'URL obtenue (se terminant par <code>/exec</code>) et collez-la ci-dessus.<br><br>
-      Sans cette configuration, l'application fonctionne en mode local (les données restent sur cet appareil) et le bouton « Importer les élèves du collège » ouvrira un sélecteur de fichier Excel/CSV à la place.
-    </div>
-  </div>
-</div>
-
 <div class="toast-container" id="toastContainer"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -312,8 +275,7 @@ var GENERAL_COLUMNS = [
   {key:'classe', label:'Classe', color:'classe', sortable:true, filterable:true, filterType:'select', options:CLASSES},
   {key:'sexe', label:'Sexe', color:'sexe', sortable:true, filterable:true, filterType:'select', options:['F','M']},
   {key:'groupe', label:'Groupe', color:'groupe', sortable:true, filterable:true, filterType:'select', options:['1','2']},
-  {key:'autorisation', label:'Autorisation de sortie', color:'autorisation', sortable:true, filterable:true, filterType:'select', options:['Oui','Non']},
-  {key:'updatedAt', label:'Dernière MAJ', color:'maj', sortable:true, filterable:false}
+  {key:'autorisation', label:'Autorisation de sortie', color:'autorisation', sortable:true, filterable:true, filterType:'select', options:['Oui','Non']}
 ];
 
 var CLASS_COLUMNS = [
@@ -329,8 +291,11 @@ var TAB_COLUMNS = {general: GENERAL_COLUMNS};
 CLASSES.forEach(function(c){ TAB_COLUMNS[c] = CLASS_COLUMNS; });
 
 /* ---------- État ---------- */
+// URL par défaut de l'application Apps Script partagée : les collègues n'ont rien à configurer.
+// Un utilisateur peut la remplacer via la roue crantée (⚙️) ; ce choix reste alors propre à son appareil.
+var DEFAULT_APPSCRIPT_URL = 'https://script.google.com/macros/s/AKfycbycNXBtBWxfBmkOtFkh51mqqQI8llyFNcMq5xLc-AXePix_pTFSLPOph_qUqysmnl4u/exec';
 var students = [];
-var configUrl = localStorage.getItem(URL_KEY) || '';
+var configUrl = localStorage.getItem(URL_KEY) || DEFAULT_APPSCRIPT_URL;
 var sortState = {};
 var filterState = {};
 var dirtyRows = new Map();
@@ -587,17 +552,19 @@ function applyFiltersToDOM(tabKey){
 }
 
 /* ---------- Rendu tableau ---------- */
+function chipButton(id, field, val, current, label, cls){
+  var active = current===val;
+  return '<button type="button" class="chip chip-btn'+(active?(' active '+cls):'')+'" data-id="'+id+'" data-field="'+field+'" data-value="'+val+'">'+label+'</button>';
+}
 function chipGroup(id, field, value){
+  var buttons;
   if(field==='groupe'){
-    return '<div class="chips">'
-      +'<label class="chip'+(value==='1'?' active g1':'')+'"><input type="radio" class="chip-radio" name="g-'+id+'" data-id="'+id+'" data-field="groupe" value="1"'+(value==='1'?' checked':'')+'> G1</label>'
-      +'<label class="chip'+(value==='2'?' active g2':'')+'"><input type="radio" class="chip-radio" name="g-'+id+'" data-id="'+id+'" data-field="groupe" value="2"'+(value==='2'?' checked':'')+'> G2</label>'
-      +'</div>';
+    buttons = chipButton(id,'groupe','1',value,'1️⃣ G1','g1') + chipButton(id,'groupe','2',value,'2️⃣ G2','g2');
+  } else {
+    buttons = chipButton(id,'autorisation','Oui',value,'✅ Oui','oui') + chipButton(id,'autorisation','Non',value,'❌ Non','non');
   }
-  return '<div class="chips">'
-    +'<label class="chip'+(value==='Oui'?' active oui':'')+'"><input type="radio" class="chip-radio" name="a-'+id+'" data-id="'+id+'" data-field="autorisation" value="Oui"'+(value==='Oui'?' checked':'')+'> Oui</label>'
-    +'<label class="chip'+(value==='Non'?' active non':'')+'"><input type="radio" class="chip-radio" name="a-'+id+'" data-id="'+id+'" data-field="autorisation" value="Non"'+(value==='Non'?' checked':'')+'> Non</label>'
-    +'</div>';
+  var hint = value ? '' : '<span class="undef-hint">à définir</span>';
+  return '<div class="chips">'+buttons+hint+'</div>';
 }
 
 function renderTable(tabKey, columns, rows){
@@ -738,9 +705,6 @@ function switchTab(id){
   document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.toggle('active', p.id==='tab-'+id); });
 }
 
-/* ---------- Modale de configuration ---------- */
-function openSettings(){ document.getElementById('settingsOverlay').classList.add('open'); }
-function closeSettings(){ document.getElementById('settingsOverlay').classList.remove('open'); }
 
 /* ---------- Gestionnaires d'évènements (délégation) ---------- */
 function onHeaderClick(th){
@@ -757,11 +721,11 @@ function onFilterChange(el){
   filterState[tab][key] = el.value;
   applyFiltersToDOM(tab);
 }
-function onChipChange(el){
-  var id = el.dataset.id, field = el.dataset.field, value = el.value;
+function onChipClick(el){
+  var id = el.dataset.id, field = el.dataset.field, clicked = el.dataset.value;
   var s = students.find(function(x){ return x.id===id; });
   if(!s) return;
-  s[field] = value;
+  s[field] = (s[field]===clicked) ? '' : clicked;
   s.updatedAt = new Date().toLocaleString('fr-FR');
   saveLocal();
   renderAll();
@@ -778,6 +742,9 @@ function bindEvents(){
     var th = e.target.closest('th.sortable');
     if(th){ onHeaderClick(th); return; }
 
+    var chipBtn = e.target.closest('.chip-btn');
+    if(chipBtn){ onChipClick(chipBtn); return; }
+
     var resetBtn = e.target.closest('[data-action="reset-filters"]');
     if(resetBtn){ filterState[resetBtn.dataset.tab] = {}; renderTabTable(resetBtn.dataset.tab); return; }
 
@@ -789,24 +756,8 @@ function bindEvents(){
     switch(action.dataset.action){
       case 'import-roster': importRosterFromSheet(); break;
       case 'import-file': document.getElementById('fileImportInput').click(); break;
-      case 'open-settings': openSettings(); break;
-      case 'close-settings': closeSettings(); break;
       case 'sync-now': fetchFromSheet(); break;
-      case 'test-connection':
-        apiGet('getData').then(function(){ toast('Connexion réussie ✅'); })
-          .catch(function(err){ toast('Échec de connexion : '+err.message, 'error'); });
-        break;
-      case 'save-settings':
-        configUrl = document.getElementById('appScriptUrlInput').value.trim();
-        localStorage.setItem(URL_KEY, configUrl);
-        toast('Configuration enregistrée.');
-        if(configUrl) fetchFromSheet();
-        break;
     }
-  });
-
-  document.getElementById('settingsOverlay').addEventListener('click', function(e){
-    if(e.target.id==='settingsOverlay') closeSettings();
   });
 
   document.body.addEventListener('input', function(e){
@@ -814,7 +765,6 @@ function bindEvents(){
   });
   document.body.addEventListener('change', function(e){
     if(e.target.classList.contains('filter-input') && e.target.tagName==='SELECT') onFilterChange(e.target);
-    if(e.target.classList.contains('chip-radio')) onChipChange(e.target);
   });
 }
 
@@ -824,7 +774,6 @@ function init(){
   sortState['general'] = {key:'nom', dir:'asc'}; filterState['general'] = {};
   CLASSES.forEach(function(c){ sortState[c] = {key:'nom', dir:'asc'}; filterState[c] = {}; });
 
-  document.getElementById('appScriptUrlInput').value = configUrl;
   bindEvents();
   renderAll();
   setSyncStatus(configUrl ? 'pending' : 'local');
