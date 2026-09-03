@@ -129,7 +129,7 @@ main{max-width:1400px; margin:0 auto; padding:0 clamp(14px,4vw,40px);}
 .toolbar-actions{display:flex; gap:8px; flex-wrap:wrap;}
 
 .table-scroll{overflow-x:auto; border-radius:var(--radius); box-shadow:var(--shadow); background:var(--surface);}
-table{border-collapse:collapse; width:100%; min-width:520px; table-layout:fixed; font-size:.8rem;}
+table{border-collapse:collapse; table-layout:fixed; font-size:.8rem;}
 thead th{
   background:var(--col-color,#334155); color:#fff; text-align:left; padding:6px 8px; font-weight:700;
   white-space:nowrap; position:sticky; top:0; z-index:2; user-select:none; font-size:.78rem;
@@ -149,10 +149,12 @@ tbody tr:hover{background:#eef2ff;}
 .dim{color:#cbd5e1;}
 
 th.col-num{width:26px;}
-th.col-sexe{width:34px;}
-th.col-classe{width:66px;}
-th.col-groupe{width:128px;}
-th.col-autorisation{width:138px;}
+th.col-nom{width:130px;}
+th.col-prenom{width:120px;}
+th.col-sexe{width:32px;}
+th.col-classe{width:64px;}
+th.col-groupe{width:122px;}
+th.col-autorisation{width:132px;}
 td.col-num{text-align:center; color:var(--muted);}
 td.col-sexe{text-align:center;}
 td.col-groupe, td.col-autorisation{padding-left:6px; padding-right:6px;}
@@ -290,7 +292,7 @@ var GENERAL_COLUMNS = [
   {key:'nom', label:'Nom', color:'nom', sortable:true, filterable:true, filterType:'text'},
   {key:'prenom', label:'Prénom', color:'prenom', sortable:true, filterable:true, filterType:'text'},
   {key:'classe', label:'Classe', color:'classe', sortable:true, filterable:true, filterType:'select', options:CLASSES},
-  {key:'sexe', label:'Sexe', color:'sexe', sortable:true, filterable:true, filterType:'select', options:[{value:'F',label:'F'},{value:'M',label:'G'}]},
+  {key:'sexe', label:'Sexe', color:'sexe', sortable:true, filterable:true, filterType:'select', options:['F','G']},
   {key:'groupe', label:'Groupe', color:'groupe', sortable:true, filterable:true, filterType:'select', options:['1','2']},
   {key:'autorisation', label:'Autorisation de sortie', color:'autorisation', sortable:true, filterable:true, filterType:'select', options:['Oui','Non']}
 ];
@@ -299,7 +301,7 @@ var CLASS_COLUMNS = [
   {key:'num', label:'N°', color:'num', sortable:false, filterable:false},
   {key:'nom', label:'Nom', color:'nom', sortable:true, filterable:true, filterType:'text'},
   {key:'prenom', label:'Prénom', color:'prenom', sortable:true, filterable:true, filterType:'text'},
-  {key:'sexe', label:'Sexe', color:'sexe', sortable:true, filterable:true, filterType:'select', options:[{value:'F',label:'F'},{value:'M',label:'G'}]},
+  {key:'sexe', label:'Sexe', color:'sexe', sortable:true, filterable:true, filterType:'select', options:['F','G']},
   {key:'groupe', label:'Groupe', color:'groupe', sortable:true, filterable:true, filterType:'select', options:['1','2'], editable:true},
   {key:'autorisation', label:'Autorisation de sortie', color:'autorisation', sortable:true, filterable:true, filterType:'select', options:['Oui','Non'], editable:true}
 ];
@@ -336,6 +338,12 @@ function normalizeClasse(raw){
   if(m) return '6ème'+m[1];
   for(var i=0;i<CLASSES.length;i++){ if(norm(CLASSES[i]).replace(/\s+/g,'')===n) return CLASSES[i]; }
   return raw ? raw.toString().trim() : '';
+}
+// Ramène toute valeur de sexe (F, M, Fille, Féminin, Garçon, Masculin, f, m...) à 'F' ou 'G'.
+function normalizeSexe(raw){
+  var v = norm(raw);
+  if(!v) return '';
+  return v.charAt(0)==='f' ? 'F' : 'G';
 }
 function getRowsForTab(t){ return t==='general' ? students : studentsForClasse(t); }
 function studentsForClasse(c){ return students.filter(function(s){ return s.classe===c; }); }
@@ -400,7 +408,7 @@ function mapServerRow(r){
   return {
     id: r.id || makeId(r.nom,r.prenom,r.classe),
     nom: r.nom||'', prenom: r.prenom||'',
-    classe: normalizeClasse(r.classe)||'', sexe: r.sexe||'',
+    classe: normalizeClasse(r.classe)||'', sexe: normalizeSexe(r.sexe),
     groupe: (r.groupe||'').toString(), autorisation: r.autorisation||'',
     updatedAt: r.updatedAt||''
   };
@@ -450,13 +458,14 @@ function mergeRoster(rosterRows){
     if(!nom && !prenom) return;
     if(CLASSES.indexOf(classe)===-1){ skipped++; return; }
     var id = makeId(nom, prenom, classe);
+    var sexe = normalizeSexe(r.sexe);
     var existing = students.find(function(s){ return s.id===id; });
     if(existing){
       var changed=false;
-      if((r.sexe||'') && existing.sexe!==r.sexe){ existing.sexe=r.sexe; changed=true; }
+      if(sexe && existing.sexe!==sexe){ existing.sexe=sexe; changed=true; }
       if(changed){ updated++; touched.push(existing); }
     } else {
-      var s = {id:id, nom:nom, prenom:prenom, classe:classe, sexe:r.sexe||'', groupe:'', autorisation:'', updatedAt:''};
+      var s = {id:id, nom:nom, prenom:prenom, classe:classe, sexe:sexe, groupe:'', autorisation:'', updatedAt:''};
       students.push(s);
       touched.push(s);
       added++;
@@ -575,9 +584,7 @@ function chipButton(id, field, val, current, label, cls){
 }
 function sexeBadge(value){
   if(!value) return '<span class="dim">—</span>';
-  var v = value.toString().trim().toUpperCase();
-  if(v==='F') return '<span class="sexe-badge sexe-f">F</span>';
-  return '<span class="sexe-badge sexe-g">G</span>';
+  return value==='F' ? '<span class="sexe-badge sexe-f">F</span>' : '<span class="sexe-badge sexe-g">G</span>';
 }
 function chipGroup(id, field, value){
   var buttons;
