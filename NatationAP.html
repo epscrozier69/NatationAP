@@ -317,7 +317,11 @@ var students = [];
 var configUrl = localStorage.getItem(URL_KEY) || DEFAULT_APPSCRIPT_URL;
 var sortState = {};
 var filterState = {};
-var dirtyRows = new Map();
+// Identifiants des élèves modifiés localement mais pas encore confirmés enregistrés côté
+// Google Sheet. Persisté pour survivre à un rechargement de page hors connexion, et pour
+// empêcher qu'une synchronisation automatique n'écrase une saisie encore en attente d'envoi.
+var PENDING_KEY = 'nap_pending_ids_v1';
+var pendingIds = loadPendingIds();
 var syncTimer = null;
 var autoRefreshTimer = null;
 
@@ -355,6 +359,12 @@ function loadLocal(){
 }
 function saveLocal(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(students)); }
 
+function loadPendingIds(){
+  try{ var raw = localStorage.getItem(PENDING_KEY); return new Set(raw ? JSON.parse(raw) : []); }
+  catch(e){ return new Set(); }
+}
+function savePendingIds(){ localStorage.setItem(PENDING_KEY, JSON.stringify(Array.from(pendingIds))); }
+
 /* ---------- Toasts ---------- */
 function toast(msg, type){
   var c = document.getElementById('toastContainer');
@@ -375,6 +385,7 @@ function setSyncStatus(status){
     syncing:['🔄','Synchronisation…'],
     synced:['🟢','Synchronisé'],
     pending:['🟡','Modifications en attente'],
+    offline:['📴','Hors connexion (en attente)'],
     error:['🔴','Erreur de synchronisation']
   };
   var v = map[status] || map.local;
@@ -414,19 +425,39 @@ function mapServerRow(r){
   };
 }
 
+/**
+ * Combine les données fraîchement lues sur le serveur avec les modifications locales pas
+ * encore confirmées enregistrées (pendingIds) : ces dernières l'emportent, pour qu'une
+ * synchronisation automatique ne puisse jamais écraser une saisie faite hors connexion.
+ */
+function mergeServerWithPending(serverList){
+  if(!pendingIds.size) return serverList;
+  var previous = students;
+  var byId = {};
+  serverList.forEach(function(s){ byId[s.id] = s; });
+  Array.from(pendingIds).forEach(function(id){
+    var local = previous.find(function(x){ return x.id===id; });
+    if(!local){ pendingIds.delete(id); return; }
+    byId[id] = local;
+  });
+  savePendingIds();
+  return Object.keys(byId).map(function(k){ return byId[k]; });
+}
+
 function fetchFromSheet(opts){
   opts = opts||{};
   if(!configUrl){ setSyncStatus('local'); return Promise.resolve(false); }
   setSyncStatus('syncing');
   return apiGet('getData').then(function(data){
-    students = data.map(mapServerRow);
+    students = mergeServerWithPending(data.map(mapServerRow));
     saveLocal();
-    setSyncStatus('synced');
+    setSyncStatus(pendingIds.size ? 'pending' : 'synced');
     if(!opts.silent) toast('Données synchronisées depuis Google Sheet.');
     renderAll();
+    if(pendingIds.size) flushPending({silent:true});
     return true;
   }).catch(function(err){
-    setSyncStatus('error');
+    setSyncStatus(pendingIds.size ? 'pending' : 'error');
     if(!opts.silent) toast('Erreur de synchronisation : '+err.message, 'error');
     return false;
   });
@@ -471,26 +502,40 @@ function mergeRoster(rosterRows){
       added++;
     }
   });
+  if(touched.length){
+    touched.forEach(function(s){ pendingIds.add(s.id); });
+    savePendingIds();
+  }
   saveLocal();
   renderAll();
   toast(added+' élève(s) de 6ème ajouté(s)'+(updated?(', '+updated+' mis à jour'):'')+(skipped?(', '+skipped+' ignoré(s) (autres niveaux)'):'')+'.');
-  if(configUrl && touched.length){ pushRows(touched, {silent:true}); }
+  if(configUrl && touched.length){ flushPending({silent:true}); }
 }
 
 function scheduleSync(student){
-  dirtyRows.set(student.id, student);
+  pendingIds.add(student.id);
+  savePendingIds();
   setSyncStatus('pending');
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(function(){
-    var rows = Array.from(dirtyRows.values());
-    dirtyRows.clear();
-    pushRows(rows);
-  }, 900);
+  syncTimer = setTimeout(function(){ flushPending(); }, 900);
 }
 
-function pushRows(rows, opts){
+/**
+ * Tente d'envoyer au serveur toutes les modifications en attente (pendingIds). Ne retire
+ * un identifiant de la file d'attente qu'après confirmation d'enregistrement réussie : en
+ * cas d'échec (hors connexion, erreur réseau...), la modification reste en attente et sera
+ * retentée automatiquement (retour de connexion détecté, ou prochaine synchronisation).
+ */
+function flushPending(opts){
   opts = opts||{};
   if(!configUrl){ setSyncStatus('local'); return Promise.resolve(); }
+  if(!pendingIds.size) return Promise.resolve();
+  if(typeof navigator!=='undefined' && navigator.onLine===false){ setSyncStatus('offline'); return Promise.resolve(); }
+
+  var idsAttempted = Array.from(pendingIds);
+  var rows = idsAttempted.map(function(id){ return students.find(function(s){ return s.id===id; }); }).filter(Boolean);
+  if(!rows.length){ idsAttempted.forEach(function(id){ pendingIds.delete(id); }); savePendingIds(); return Promise.resolve(); }
+
   setSyncStatus('syncing');
   return apiGet('getData').then(function(latest){
     var merged = latest.map(mapServerRow);
@@ -503,17 +548,19 @@ function pushRows(rows, opts){
         merged.push(row);
       }
     });
-    students = merged;
+    students = mergeServerWithPending(merged);
     saveLocal();
     return apiPost('saveData', {rows: rows});
   }).then(function(result){
-    students = result.map(mapServerRow);
+    idsAttempted.forEach(function(id){ pendingIds.delete(id); });
+    savePendingIds();
+    students = mergeServerWithPending(result.map(mapServerRow));
     saveLocal();
-    setSyncStatus('synced');
+    setSyncStatus(pendingIds.size ? 'pending' : 'synced');
     renderAll();
   }).catch(function(err){
-    setSyncStatus('error');
-    if(!opts.silent) toast('Erreur de synchronisation : '+err.message, 'error');
+    setSyncStatus('pending');
+    if(!opts.silent) toast('Enregistrement en attente (hors connexion ?) : '+err.message, 'warn');
   });
 }
 
@@ -810,7 +857,10 @@ function init(){
 
   bindEvents();
   renderAll();
-  setSyncStatus(configUrl ? 'pending' : 'local');
+  setSyncStatus(pendingIds.size ? 'pending' : (configUrl ? 'syncing' : 'local'));
+
+  window.addEventListener('online', function(){ fetchFromSheet({silent:true}); });
+  window.addEventListener('offline', function(){ if(pendingIds.size) setSyncStatus('offline'); });
 
   if(configUrl){
     fetchFromSheet({silent:true});
