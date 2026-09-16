@@ -738,7 +738,7 @@ function computeStats(rows){
   return {
     total: rows.length,
     seul: rows.filter(function(r){ return r.autorisation==='Oui'; }).length,
-    prof: rows.filter(function(r){ return r.autorisation==='Non'; }).length,
+    prof: rows.filter(function(r){ return r.autorisation!=='Oui'; }).length,
     g1: rows.filter(function(r){ return r.groupe==='1'; }).length,
     g2: rows.filter(function(r){ return r.groupe==='2'; }).length
   };
