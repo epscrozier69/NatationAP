@@ -644,8 +644,9 @@ function applyFiltersToDOM(tabKey){
 }
 
 /* ---------- Rendu tableau ---------- */
-function chipButton(id, field, val, current, label, cls){
+function chipButton(id, field, val, current, emoji, text, cls){
   var active = current===val;
+  var label = active ? (emoji+' '+text) : text;
   return '<button type="button" class="chip chip-btn'+(active?(' active '+cls):'')+'" data-id="'+id+'" data-field="'+field+'" data-value="'+val+'">'+label+'</button>';
 }
 function sexeBadge(value){
@@ -655,9 +656,9 @@ function sexeBadge(value){
 function chipGroup(id, field, value){
   var buttons;
   if(field==='groupe'){
-    buttons = chipButton(id,'groupe','1',value,'1️⃣ G1','g1') + chipButton(id,'groupe','2',value,'2️⃣ G2','g2');
+    buttons = chipButton(id,'groupe','1',value,'1️⃣','G1','g1') + chipButton(id,'groupe','2',value,'2️⃣','G2','g2');
   } else {
-    buttons = chipButton(id,'autorisation','Oui',value,'✅ Oui','oui') + chipButton(id,'autorisation','Non',value,'❌ Non','non');
+    buttons = chipButton(id,'autorisation','Oui',value,'✅','Oui','oui') + chipButton(id,'autorisation','Non',value,'❌','Non','non');
   }
   return '<div class="chips">'+buttons+'</div>';
 }
