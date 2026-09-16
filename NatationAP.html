@@ -128,7 +128,7 @@ main{max-width:1400px; margin:0 auto; padding:0 clamp(14px,4vw,40px);}
 .row-count{font-size:.78rem; color:var(--muted); font-weight:600;}
 .toolbar-actions{display:flex; gap:8px; flex-wrap:wrap;}
 
-.table-scroll{overflow-x:auto; border-radius:var(--radius); box-shadow:var(--shadow); background:var(--surface);}
+.table-scroll{overflow:auto; max-height:min(68vh, 620px); border-radius:var(--radius); box-shadow:var(--shadow); background:var(--surface);}
 table{border-collapse:collapse; table-layout:fixed; font-size:.8rem;}
 thead th{
   background:var(--col-color,#334155); color:#fff; text-align:left; padding:6px 8px; font-weight:700;
@@ -202,6 +202,16 @@ footer.app-footer{max-width:1400px; margin:24px auto 0; padding:0 clamp(14px,4vw
   thead th{padding:5px 7px; font-size:.72rem;}
   tbody td{padding:3px 7px; font-size:.74rem;}
   .stat-value{font-size:1.1rem;}
+}
+
+@media print{
+  body{background:#fff; padding-bottom:0;}
+  .app-header, .tabs, .table-toolbar, .toast-container, .section-actions{display:none !important;}
+  main{padding:0 !important; max-width:none !important;}
+  .table-scroll{max-height:none !important; overflow:visible !important; box-shadow:none !important;}
+  thead th, tr.filter-row td{position:static !important;}
+  tr.filter-row{display:none !important;}
+  table{font-size:.75rem;}
 }
 </style>
 </head>
@@ -324,6 +334,9 @@ var PENDING_KEY = 'nap_pending_ids_v1';
 var pendingIds = loadPendingIds();
 var syncTimer = null;
 var autoRefreshTimer = null;
+// Colonnes masquées à la demande (persisté, s'applique à tous les onglets concernés).
+var HIDDEN_COLUMNS_KEY = 'nap_hidden_columns_v1';
+var hiddenColumns = loadHiddenColumns();
 
 /* ---------- Utilitaires ---------- */
 function normalizeAccents(s){ return (s||'').toString().normalize('NFD').replace(/\p{Diacritic}/gu,''); }
@@ -364,6 +377,12 @@ function loadPendingIds(){
   catch(e){ return new Set(); }
 }
 function savePendingIds(){ localStorage.setItem(PENDING_KEY, JSON.stringify(Array.from(pendingIds))); }
+
+function loadHiddenColumns(){
+  try{ var raw = localStorage.getItem(HIDDEN_COLUMNS_KEY); return new Set(raw ? JSON.parse(raw) : []); }
+  catch(e){ return new Set(); }
+}
+function saveHiddenColumns(){ localStorage.setItem(HIDDEN_COLUMNS_KEY, JSON.stringify(Array.from(hiddenColumns))); }
 
 /* ---------- Toasts ---------- */
 function toast(msg, type){
@@ -651,8 +670,13 @@ function renderTable(tabKey, columns, rows){
   var html = '<div class="table-toolbar">';
   html += '<span class="row-count" data-count>'+sorted.length+' / '+sorted.length+' élève(s) affiché(s)</span>';
   html += '<div class="toolbar-actions">';
+  if(TAB_COLUMNS[tabKey].some(function(c){ return c.key==='groupe'; })){
+    var groupeHidden = hiddenColumns.has('groupe');
+    html += '<button type="button" class="btn btn-ghost btn-sm" data-action="toggle-column" data-column="groupe">'+(groupeHidden?'👁️ Afficher Groupe':'🙈 Masquer Groupe')+'</button>';
+  }
   html += '<button type="button" class="btn btn-ghost btn-sm" data-action="reset-filters" data-tab="'+tabKey+'">✖ Réinitialiser les filtres</button>';
   html += '<button type="button" class="btn btn-secondary btn-sm" data-action="export-excel" data-tab="'+tabKey+'">⬇️ Exporter Excel</button>';
+  html += '<button type="button" class="btn btn-secondary btn-sm" data-action="export-pdf" data-tab="'+tabKey+'">🖨️ Exporter PDF</button>';
   html += '</div></div>';
 
   html += '<div class="table-scroll"><table><thead><tr>';
@@ -700,8 +724,11 @@ function renderTable(tabKey, columns, rows){
   container.innerHTML = html;
 }
 
+function visibleColumns(tabKey){
+  return TAB_COLUMNS[tabKey].filter(function(c){ return !hiddenColumns.has(c.key); });
+}
 function renderTabTable(tabKey){
-  renderTable(tabKey, TAB_COLUMNS[tabKey], getRowsForTab(tabKey));
+  renderTable(tabKey, visibleColumns(tabKey), getRowsForTab(tabKey));
   applyFiltersToDOM(tabKey);
 }
 
@@ -761,7 +788,7 @@ function renderAll(){
 
 /* ---------- Export Excel ---------- */
 function exportTableExcel(tabKey){
-  var columns = TAB_COLUMNS[tabKey];
+  var columns = visibleColumns(tabKey);
   var container = document.querySelector('[data-table-container="'+tabKey+'"]');
   var rows = Array.from(container.querySelectorAll('tbody tr[data-row]')).filter(function(tr){ return tr.style.display!=='none'; });
   var header = columns.filter(function(c){ return c.key!=='num'; }).map(function(c){ return c.label; });
@@ -778,6 +805,14 @@ function exportTableExcel(tabKey){
   var wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, tabKey.substring(0,31));
   XLSX.writeFile(wb, 'NatationAP_'+tabKey+'_'+dateStamp()+'.xlsx');
+}
+
+/* ---------- Export PDF (impression navigateur) ---------- */
+function exportTablePdf(tabKey){
+  var previousTitle = document.title;
+  document.title = 'NatationAP_'+tabKey+'_'+dateStamp();
+  window.print();
+  document.title = previousTitle;
 }
 
 /* ---------- Onglets ---------- */
@@ -831,6 +866,18 @@ function bindEvents(){
 
     var exportBtn = e.target.closest('[data-action="export-excel"]');
     if(exportBtn){ exportTableExcel(exportBtn.dataset.tab); return; }
+
+    var exportPdfBtn = e.target.closest('[data-action="export-pdf"]');
+    if(exportPdfBtn){ exportTablePdf(exportPdfBtn.dataset.tab); return; }
+
+    var toggleColBtn = e.target.closest('[data-action="toggle-column"]');
+    if(toggleColBtn){
+      var col = toggleColBtn.dataset.column;
+      if(hiddenColumns.has(col)) hiddenColumns.delete(col); else hiddenColumns.add(col);
+      saveHiddenColumns();
+      renderAll();
+      return;
+    }
 
     var action = e.target.closest('[data-action]');
     if(!action) return;
