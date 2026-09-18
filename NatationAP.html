@@ -116,13 +116,15 @@ main{max-width:1400px; margin:0 auto; padding:0 clamp(14px,4vw,40px);}
 
 .card{background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow); padding:10px 14px; margin-bottom:10px;}
 
-.stats-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; margin-bottom:10px;}
+.stats-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; margin-bottom:10px; align-items:start;}
 .stat-card{
   background:var(--surface); border-radius:10px; box-shadow:var(--shadow); padding:8px 12px;
   border-left:5px solid var(--col-color,#64748b);
 }
 .stat-value{font-size:1.25rem; font-weight:800; color:var(--text); line-height:1.1;}
 .stat-label{font-size:.68rem; color:var(--muted); font-weight:600; margin-top:1px;}
+.stat-names{margin-top:6px; padding-top:6px; border-top:1px solid var(--border); max-height:130px; overflow-y:auto;}
+.stat-name{font-size:.68rem; color:var(--text); padding:1px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 
 .table-toolbar{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:6px;}
 .row-count{font-size:.78rem; color:var(--muted); font-weight:600;}
@@ -501,6 +503,8 @@ function importRosterFromSheet(){
 function mergeRoster(rosterRows){
   var added=0, updated=0, skipped=0;
   var touched = [];
+  var rosterIds = new Set();
+
   rosterRows.forEach(function(r){
     var classe = normalizeClasse(r.classe);
     var nom = (r.nom||'').toString().trim();
@@ -508,6 +512,7 @@ function mergeRoster(rosterRows){
     if(!nom && !prenom) return;
     if(CLASSES.indexOf(classe)===-1){ skipped++; return; }
     var id = makeId(nom, prenom, classe);
+    rosterIds.add(id);
     var sexe = normalizeSexe(r.sexe);
     var existing = students.find(function(s){ return s.id===id; });
     if(existing){
@@ -521,14 +526,42 @@ function mergeRoster(rosterRows){
       added++;
     }
   });
+
+  // Élèves de 6ème présents dans l'appli mais absents de ce nouvel import : à retirer.
+  var candidates = students.filter(function(s){
+    return CLASSES.indexOf(s.classe)!==-1 && !rosterIds.has(s.id);
+  });
+  var removed = [];
+  if(candidates.length){
+    var names = candidates.slice(0,10).map(function(s){ return s.nom+' '+s.prenom+' ('+s.classe+')'; }).join('\n')
+      + (candidates.length>10 ? '\n… et '+(candidates.length-10)+' autre(s)' : '');
+    var ok = window.confirm(
+      candidates.length+' élève(s) ne sont plus dans la liste du collège et vont être retiré(s) de l\'application et du Google Sheet (Groupe/Autorisation déjà saisis perdus) :\n\n'+names+'\n\nConfirmer la suppression ?'
+    );
+    if(ok){
+      removed = candidates;
+      var removeIds = removed.map(function(s){ return s.id; });
+      students = students.filter(function(s){ return removeIds.indexOf(s.id)===-1; });
+      removeIds.forEach(function(id){ pendingIds.delete(id); });
+      savePendingIds();
+    }
+  }
+
   if(touched.length){
     touched.forEach(function(s){ pendingIds.add(s.id); });
     savePendingIds();
   }
   saveLocal();
   renderAll();
-  toast(added+' élève(s) de 6ème ajouté(s)'+(updated?(', '+updated+' mis à jour'):'')+(skipped?(', '+skipped+' ignoré(s) (autres niveaux)'):'')+'.');
+  toast(added+' élève(s) de 6ème ajouté(s)'+(updated?(', '+updated+' mis à jour'):'')+(removed.length?(', '+removed.length+' supprimé(s)'):'')+(skipped?(', '+skipped+' ignoré(s) (autres niveaux)'):'')+'.');
   if(configUrl && touched.length){ flushPending({silent:true}); }
+  if(configUrl && removed.length){ deleteRowsOnServer(removed); }
+}
+
+function deleteRowsOnServer(rows){
+  apiPost('deleteRows', {rows: rows.map(function(s){ return {id:s.id, classe:s.classe, nom:s.nom, prenom:s.prenom}; })}).catch(function(err){
+    toast('Erreur lors de la suppression côté Google Sheet : '+err.message, 'error');
+  });
 }
 
 function scheduleSync(student){
@@ -743,19 +776,27 @@ function computeStats(rows){
     g2: rows.filter(function(r){ return r.groupe==='2'; }).length
   };
 }
-function statCard(label, value, color){
-  return '<div class="stat-card" style="--col-color:var(--col-'+color+')"><div class="stat-value">'+value+'</div><div class="stat-label">'+label+'</div></div>';
+function statCard(label, value, color, names){
+  var namesHtml = '';
+  if(names && names.length){
+    namesHtml = '<div class="stat-names">'+names.map(function(n){ return '<div class="stat-name">'+escapeHtml(n)+'</div>'; }).join('')+'</div>';
+  }
+  return '<div class="stat-card" style="--col-color:var(--col-'+color+')"><div class="stat-value">'+value+'</div><div class="stat-label">'+label+'</div>'+namesHtml+'</div>';
 }
-function statsCardsHtml(st){
+function studentDisplayName(s){ return (s.nom||'')+' '+(s.prenom||''); }
+function statsCardsHtml(st, rows){
+  rows = rows || [];
+  var seulNames = rows.filter(function(r){ return r.autorisation==='Oui'; }).map(studentDisplayName).sort(function(a,b){ return norm(a).localeCompare(norm(b),'fr'); });
+  var profNames = rows.filter(function(r){ return r.autorisation!=='Oui'; }).map(studentDisplayName).sort(function(a,b){ return norm(a).localeCompare(norm(b),'fr'); });
   return statCard('Élèves', st.total, 'num')
-    + statCard('Autorisés à sortir seuls', st.seul, 'autorisation')
-    + statCard('Reviennent avec le professeur', st.prof, 'classe')
+    + statCard('Autorisés à sortir seuls', st.seul, 'autorisation', seulNames)
+    + statCard('Reviennent avec le professeur', st.prof, 'classe', profNames)
     + statCard('Groupe 1', st.g1, 'groupe')
     + statCard('Groupe 2', st.g2, 'sexe');
 }
 function renderClassStats(c){
   var el = document.querySelector('[data-stats-container="'+c+'"]');
-  if(el) el.innerHTML = statsCardsHtml(computeStats(studentsForClasse(c)));
+  if(el) el.innerHTML = statsCardsHtml(computeStats(studentsForClasse(c)), studentsForClasse(c));
 }
 function renderGlobalStats(){
   var el = document.querySelector('[data-stats-container="global"]');
