@@ -26,6 +26,7 @@
   --col-groupe:#0891b2;
   --col-autorisation:#dc2626;
   --col-maj:#4f46e5;
+  --col-seul:#15803d;
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
@@ -812,7 +813,7 @@ function statsCardsHtml(st, rows){
   var seulNames = rows.filter(function(r){ return r.autorisation==='Oui'; }).map(studentDisplayName).sort(function(a,b){ return norm(a).localeCompare(norm(b),'fr'); });
   var profNames = rows.filter(function(r){ return r.autorisation!=='Oui'; }).map(studentDisplayName).sort(function(a,b){ return norm(a).localeCompare(norm(b),'fr'); });
   return statCard('Élèves', st.total, 'num')
-    + statCard('Autorisés à sortir seuls', st.seul, 'autorisation', seulNames, 'green')
+    + statCard('Autorisés à sortir seuls', st.seul, 'seul', seulNames, 'green')
     + statCard('Reviennent avec le professeur', st.prof, 'classe', profNames, 'red')
     + statCard('Groupe 1', st.g1, 'groupe')
     + statCard('Groupe 2', st.g2, 'sexe');
