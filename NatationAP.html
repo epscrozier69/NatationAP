@@ -123,7 +123,7 @@ main{max-width:1400px; margin:0 auto; padding:0 clamp(14px,4vw,40px);}
 }
 .stat-value{font-size:1.25rem; font-weight:800; color:var(--text); line-height:1.1;}
 .stat-label{font-size:.68rem; color:var(--muted); font-weight:600; margin-top:1px;}
-.stat-names{margin-top:6px; padding-top:6px; border-top:1px solid var(--border); max-height:130px; overflow-y:auto;}
+.stat-names{margin-top:6px; padding-top:6px; border-top:1px solid var(--border);}
 .stat-name{font-size:.68rem; color:var(--text); padding:1px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 
 .table-toolbar{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:6px;}
@@ -339,6 +339,9 @@ var autoRefreshTimer = null;
 // Colonnes masquées à la demande (persisté, s'applique à tous les onglets concernés).
 var HIDDEN_COLUMNS_KEY = 'nap_hidden_columns_v1';
 var hiddenColumns = loadHiddenColumns();
+// Onglets (classes) dont le tableau de saisie Oui/Non est masqué à la demande (persisté).
+var HIDDEN_TABLES_KEY = 'nap_hidden_tables_v1';
+var hiddenTables = loadHiddenTables();
 
 /* ---------- Utilitaires ---------- */
 function normalizeAccents(s){ return (s||'').toString().normalize('NFD').replace(/\p{Diacritic}/gu,''); }
@@ -385,6 +388,12 @@ function loadHiddenColumns(){
   catch(e){ return new Set(); }
 }
 function saveHiddenColumns(){ localStorage.setItem(HIDDEN_COLUMNS_KEY, JSON.stringify(Array.from(hiddenColumns))); }
+
+function loadHiddenTables(){
+  try{ var raw = localStorage.getItem(HIDDEN_TABLES_KEY); return new Set(raw ? JSON.parse(raw) : []); }
+  catch(e){ return new Set(); }
+}
+function saveHiddenTables(){ localStorage.setItem(HIDDEN_TABLES_KEY, JSON.stringify(Array.from(hiddenTables))); }
 
 /* ---------- Toasts ---------- */
 function toast(msg, type){
@@ -700,18 +709,30 @@ function renderTable(tabKey, columns, rows){
   var container = document.querySelector('[data-table-container="'+tabKey+'"]');
   if(!container) return;
   var sorted = applySort(rows, tabKey);
+  var hasEditable = TAB_COLUMNS[tabKey].some(function(c){ return c.editable; });
+  var isHidden = hasEditable && hiddenTables.has(tabKey);
 
   var html = '<div class="table-toolbar">';
-  html += '<span class="row-count" data-count>'+sorted.length+' / '+sorted.length+' élève(s) affiché(s)</span>';
+  html += '<span class="row-count" data-count>'+(isHidden ? 'Tableau masqué' : (sorted.length+' / '+sorted.length+' élève(s) affiché(s)'))+'</span>';
   html += '<div class="toolbar-actions">';
-  if(TAB_COLUMNS[tabKey].some(function(c){ return c.key==='groupe'; })){
-    var groupeHidden = hiddenColumns.has('groupe');
-    html += '<button type="button" class="btn btn-ghost btn-sm" data-action="toggle-column" data-column="groupe">'+(groupeHidden?'👁️ Afficher Groupe':'🙈 Masquer Groupe')+'</button>';
+  if(hasEditable){
+    html += '<button type="button" class="btn btn-ghost btn-sm" data-action="toggle-table" data-tab="'+tabKey+'">'+(isHidden?'👁️ Afficher le tableau':'🙈 Masquer le tableau')+'</button>';
   }
-  html += '<button type="button" class="btn btn-ghost btn-sm" data-action="reset-filters" data-tab="'+tabKey+'">✖ Réinitialiser les filtres</button>';
-  html += '<button type="button" class="btn btn-secondary btn-sm" data-action="export-excel" data-tab="'+tabKey+'">⬇️ Exporter Excel</button>';
-  html += '<button type="button" class="btn btn-secondary btn-sm" data-action="export-pdf" data-tab="'+tabKey+'">🖨️ Exporter PDF</button>';
+  if(!isHidden){
+    if(TAB_COLUMNS[tabKey].some(function(c){ return c.key==='groupe'; })){
+      var groupeHidden = hiddenColumns.has('groupe');
+      html += '<button type="button" class="btn btn-ghost btn-sm" data-action="toggle-column" data-column="groupe">'+(groupeHidden?'👁️ Afficher Groupe':'🙈 Masquer Groupe')+'</button>';
+    }
+    html += '<button type="button" class="btn btn-ghost btn-sm" data-action="reset-filters" data-tab="'+tabKey+'">✖ Réinitialiser les filtres</button>';
+    html += '<button type="button" class="btn btn-secondary btn-sm" data-action="export-excel" data-tab="'+tabKey+'">⬇️ Exporter Excel</button>';
+    html += '<button type="button" class="btn btn-secondary btn-sm" data-action="export-pdf" data-tab="'+tabKey+'">🖨️ Exporter PDF</button>';
+  }
   html += '</div></div>';
+
+  if(isHidden){
+    container.innerHTML = html;
+    return;
+  }
 
   html += '<div class="table-scroll"><table><thead><tr>';
   columns.forEach(function(col){
@@ -763,7 +784,7 @@ function visibleColumns(tabKey){
 }
 function renderTabTable(tabKey){
   renderTable(tabKey, visibleColumns(tabKey), getRowsForTab(tabKey));
-  applyFiltersToDOM(tabKey);
+  if(!hiddenTables.has(tabKey)) applyFiltersToDOM(tabKey);
 }
 
 /* ---------- Statistiques ---------- */
@@ -918,6 +939,15 @@ function bindEvents(){
       if(hiddenColumns.has(col)) hiddenColumns.delete(col); else hiddenColumns.add(col);
       saveHiddenColumns();
       renderAll();
+      return;
+    }
+
+    var toggleTableBtn = e.target.closest('[data-action="toggle-table"]');
+    if(toggleTableBtn){
+      var t = toggleTableBtn.dataset.tab;
+      if(hiddenTables.has(t)) hiddenTables.delete(t); else hiddenTables.add(t);
+      saveHiddenTables();
+      renderTabTable(t);
       return;
     }
 
