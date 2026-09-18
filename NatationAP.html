@@ -124,6 +124,8 @@ main{max-width:1400px; margin:0 auto; padding:0 clamp(14px,4vw,40px);}
 .stat-value{font-size:1.25rem; font-weight:800; color:var(--text); line-height:1.1;}
 .stat-label{font-size:.68rem; color:var(--muted); font-weight:600; margin-top:1px;}
 .stat-names{margin-top:6px; padding-top:6px; border-top:1px solid var(--border);}
+.stat-card.tint-green{background:#f0fdf4;}
+.stat-card.tint-red{background:#fef2f2;}
 .stat-name{font-size:.68rem; color:var(--text); padding:1px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 
 .table-toolbar{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:6px;}
@@ -797,12 +799,12 @@ function computeStats(rows){
     g2: rows.filter(function(r){ return r.groupe==='2'; }).length
   };
 }
-function statCard(label, value, color, names){
+function statCard(label, value, color, names, tint){
   var namesHtml = '';
   if(names && names.length){
     namesHtml = '<div class="stat-names">'+names.map(function(n){ return '<div class="stat-name">'+escapeHtml(n)+'</div>'; }).join('')+'</div>';
   }
-  return '<div class="stat-card" style="--col-color:var(--col-'+color+')"><div class="stat-value">'+value+'</div><div class="stat-label">'+label+'</div>'+namesHtml+'</div>';
+  return '<div class="stat-card'+(tint?(' tint-'+tint):'')+'" style="--col-color:var(--col-'+color+')"><div class="stat-value">'+value+'</div><div class="stat-label">'+label+'</div>'+namesHtml+'</div>';
 }
 function studentDisplayName(s){ return (s.nom||'')+' '+(s.prenom||''); }
 function statsCardsHtml(st, rows){
@@ -810,8 +812,8 @@ function statsCardsHtml(st, rows){
   var seulNames = rows.filter(function(r){ return r.autorisation==='Oui'; }).map(studentDisplayName).sort(function(a,b){ return norm(a).localeCompare(norm(b),'fr'); });
   var profNames = rows.filter(function(r){ return r.autorisation!=='Oui'; }).map(studentDisplayName).sort(function(a,b){ return norm(a).localeCompare(norm(b),'fr'); });
   return statCard('Élèves', st.total, 'num')
-    + statCard('Autorisés à sortir seuls', st.seul, 'autorisation', seulNames)
-    + statCard('Reviennent avec le professeur', st.prof, 'classe', profNames)
+    + statCard('Autorisés à sortir seuls', st.seul, 'autorisation', seulNames, 'green')
+    + statCard('Reviennent avec le professeur', st.prof, 'classe', profNames, 'red')
     + statCard('Groupe 1', st.g1, 'groupe')
     + statCard('Groupe 2', st.g2, 'sexe');
 }
