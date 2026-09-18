@@ -815,8 +815,8 @@ function statsCardsHtml(st, rows){
   return statCard('Élèves', st.total, 'num')
     + statCard('Autorisés à sortir seuls', st.seul, 'seul', seulNames, 'green')
     + statCard('Reviennent avec le professeur', st.prof, 'classe', profNames, 'red')
-    + statCard('Groupe 1', st.g1, 'groupe')
-    + statCard('Groupe 2', st.g2, 'sexe');
+    + (st.g1>0 ? statCard('Groupe 1', st.g1, 'groupe') : '')
+    + (st.g2>0 ? statCard('Groupe 2', st.g2, 'sexe') : '');
 }
 function renderClassStats(c){
   var el = document.querySelector('[data-stats-container="'+c+'"]');
