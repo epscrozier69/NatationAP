@@ -786,8 +786,15 @@ function visibleColumns(tabKey){
   return TAB_COLUMNS[tabKey].filter(function(c){ return !hiddenColumns.has(c.key); });
 }
 function renderTabTable(tabKey){
+  var container = document.querySelector('[data-table-container="'+tabKey+'"]');
+  var prevScroll = container ? container.querySelector('.table-scroll') : null;
+  var prevScrollTop = prevScroll ? prevScroll.scrollTop : 0;
+
   renderTable(tabKey, visibleColumns(tabKey), getRowsForTab(tabKey));
   if(!hiddenTables.has(tabKey)) applyFiltersToDOM(tabKey);
+
+  var newScroll = container ? container.querySelector('.table-scroll') : null;
+  if(newScroll) newScroll.scrollTop = prevScrollTop;
 }
 
 /* ---------- Statistiques ---------- */
@@ -846,10 +853,14 @@ function updateBadges(){
 
 /* ---------- Rendu global ---------- */
 function renderAll(){
+  var pageScrollY = window.scrollY;
+
   renderTabTable('general');
   CLASSES.forEach(function(c){ renderTabTable(c); renderClassStats(c); });
   renderGlobalStats();
   updateBadges();
+
+  window.scrollTo(0, pageScrollY);
 }
 
 /* ---------- Export Excel ---------- */
