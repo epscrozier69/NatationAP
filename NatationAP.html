@@ -230,6 +230,9 @@ footer.app-footer{max-width:1400px; margin:24px auto 0; padding:0 clamp(14px,4vw
     </div>
     <div class="header-actions">
       <button type="button" class="sync-pill" id="syncPill" data-action="sync-now" title="Cliquer pour synchroniser maintenant">⚪ Local uniquement</button>
+      <button type="button" class="sync-pill" data-action="backup-json" title="Télécharger une sauvegarde .json de toutes les données">💾 Sauvegarder</button>
+      <button type="button" class="sync-pill" data-action="restore-json" title="Restaurer les données depuis un fichier .json">📂 Restaurer</button>
+      <input type="file" id="restoreJsonInput" accept="application/json,.json" hidden>
     </div>
   </div>
 </header>
@@ -654,6 +657,52 @@ function onFileImport(e){
   reader.readAsBinaryString(file);
 }
 
+/* ---------- Sauvegarde / Restauration locale (.json) ---------- */
+function exportBackupJson(){
+  var payload = {app:'NatationAP', version:1, exportedAt:new Date().toISOString(), students:students};
+  var blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'NatationAP_sauvegarde_'+dateStamp()+'.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast('Sauvegarde .json téléchargée ('+students.length+' élève(s)).');
+}
+function onRestoreJsonChange(e){
+  var file = e.target.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(evt){
+    try{
+      var data = JSON.parse(evt.target.result);
+      var list = Array.isArray(data) ? data : data.students;
+      if(!Array.isArray(list)) throw new Error('fichier invalide (liste des élèves introuvable).');
+      var ok = window.confirm('Restaurer '+list.length+' élève(s) depuis ce fichier ?\n\nLes données actuelles seront remplacées (et renvoyées vers le Google Sheet si connecté).');
+      if(!ok) return;
+      students = list.map(function(r){
+        return {
+          id: r.id || makeId(r.nom,r.prenom,r.classe),
+          nom:r.nom||'', prenom:r.prenom||'',
+          classe: normalizeClasse(r.classe)||'', sexe: normalizeSexe(r.sexe),
+          groupe:(r.groupe||'').toString(), autorisation:r.autorisation||'',
+          updatedAt:r.updatedAt||''
+        };
+      });
+      saveLocal();
+      students.forEach(function(s){ pendingIds.add(s.id); });
+      savePendingIds();
+      setSyncStatus(students.length ? 'pending' : 'local');
+      renderAll();
+      toast(students.length+' élève(s) restauré(s) depuis le fichier.');
+      if(configUrl) flushPending({silent:true});
+    }catch(err){
+      toast('Erreur de restauration : '+err.message, 'error');
+    }
+  };
+  reader.onloadend = function(){ e.target.value=''; };
+  reader.readAsText(file);
+}
+
 /* ---------- Tri / filtre ---------- */
 function applySort(rows, tabKey){
   var s = sortState[tabKey];
@@ -927,6 +976,7 @@ function onChipClick(el){
 
 function bindEvents(){
   document.getElementById('fileImportInput').addEventListener('change', onFileImport);
+  document.getElementById('restoreJsonInput').addEventListener('change', onRestoreJsonChange);
 
   document.body.addEventListener('click', function(e){
     var tabBtn = e.target.closest('.tab-btn');
@@ -971,6 +1021,8 @@ function bindEvents(){
       case 'import-roster': importRosterFromSheet(); break;
       case 'import-file': document.getElementById('fileImportInput').click(); break;
       case 'sync-now': fetchFromSheet(); break;
+      case 'backup-json': exportBackupJson(); break;
+      case 'restore-json': document.getElementById('restoreJsonInput').click(); break;
     }
   });
 
