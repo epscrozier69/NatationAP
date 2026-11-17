@@ -254,7 +254,6 @@ footer.app-footer{max-width:1400px; margin:24px auto 0; padding:0 clamp(14px,4vw
       <div class="section-actions">
         <button type="button" class="btn btn-ghost btn-sm" data-action="import-file">📄 Importer un fichier (secours)</button>
         <input type="file" id="fileImportInput" accept=".xlsx,.xls,.csv" hidden>
-        <button type="button" class="btn btn-primary" data-action="import-roster">📥 Importer les élèves du collège</button>
       </div>
     </div>
     <div class="table-container" data-table-container="general"></div>
@@ -1018,7 +1017,6 @@ function bindEvents(){
     var action = e.target.closest('[data-action]');
     if(!action) return;
     switch(action.dataset.action){
-      case 'import-roster': importRosterFromSheet(); break;
       case 'import-file': document.getElementById('fileImportInput').click(); break;
       case 'sync-now': fetchFromSheet(); break;
       case 'backup-json': exportBackupJson(); break;
@@ -1048,6 +1046,7 @@ function init(){
   window.addEventListener('offline', function(){ if(pendingIds.size) setSyncStatus('offline'); });
 
   if(configUrl){
+    importRosterFromSheet();
     fetchFromSheet({silent:true});
     autoRefreshTimer = setInterval(function(){ fetchFromSheet({silent:true}); }, 45000);
   }
