@@ -498,23 +498,26 @@ function fetchFromSheet(opts){
   });
 }
 
-function importRosterFromSheet(){
+function importRosterFromSheet(opts){
+  opts = opts||{};
   if(!configUrl){
+    if(opts.auto) return;
     toast('Aucune source Google Sheet configurée : sélectionnez un fichier.', 'warn');
     document.getElementById('fileImportInput').click();
     return;
   }
   setSyncStatus('syncing');
   apiGet('getRoster').then(function(roster){
-    mergeRoster(roster);
+    mergeRoster(roster, opts);
     setSyncStatus('synced');
   }).catch(function(err){
-    setSyncStatus('error');
-    toast('Erreur import élèves du collège : '+err.message, 'error');
+    setSyncStatus(opts.auto ? 'local' : 'error');
+    if(!opts.auto) toast('Erreur import élèves du collège : '+err.message, 'error');
   });
 }
 
-function mergeRoster(rosterRows){
+function mergeRoster(rosterRows, opts){
+  opts = opts||{};
   var added=0, updated=0, skipped=0;
   var touched = [];
   var rosterIds = new Set();
@@ -567,7 +570,9 @@ function mergeRoster(rosterRows){
   }
   saveLocal();
   renderAll();
-  toast(added+' élève(s) de 6ème ajouté(s)'+(updated?(', '+updated+' mis à jour'):'')+(removed.length?(', '+removed.length+' supprimé(s)'):'')+(skipped?(', '+skipped+' ignoré(s) (autres niveaux)'):'')+'.');
+  if(!opts.auto || touched.length || removed.length){
+    toast(added+' élève(s) de 6ème ajouté(s)'+(updated?(', '+updated+' mis à jour'):'')+(removed.length?(', '+removed.length+' supprimé(s)'):'')+(skipped?(', '+skipped+' ignoré(s) (autres niveaux)'):'')+'.');
+  }
   if(configUrl && touched.length){ flushPending({silent:true}); }
   if(configUrl && removed.length){ deleteRowsOnServer(removed); }
 }
@@ -1046,7 +1051,7 @@ function init(){
   window.addEventListener('offline', function(){ if(pendingIds.size) setSyncStatus('offline'); });
 
   if(configUrl){
-    importRosterFromSheet();
+    importRosterFromSheet({auto:true});
     fetchFromSheet({silent:true});
     autoRefreshTimer = setInterval(function(){ fetchFromSheet({silent:true}); }, 45000);
   }
